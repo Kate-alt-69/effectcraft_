@@ -230,7 +230,7 @@ fn edit_label_menu_shows_the_label_colours() {
 #[test]
 fn leaving_the_learn_workspace_closes_its_tutorials() {
     let mut h = harness();
-    for name in ["Learn", "Default", "Learn", "Review", "Learn", "Learn", "Small Screen", "Standard", "Learn", "Default"] {
+    for name in ["Learn", "Default", "Learn", "Editing", "Learn", "Learn", "Small Screen", "Standard", "Learn", "Default"] {
         click(&mut h, &format!("header.workspace.{name}"));
         assert_eq!(h.state().ui.workspace, name);
         let learn = name == "Learn";

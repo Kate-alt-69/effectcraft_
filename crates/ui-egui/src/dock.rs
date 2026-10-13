@@ -12,6 +12,7 @@ use crate::theme::Tokens;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PanelKind {
+    Tools,
     Project,
     EffectControls,
     Composition,
@@ -55,7 +56,8 @@ pub enum PanelKind {
 }
 
 impl PanelKind {
-    pub const ALL: [PanelKind; 34] = [
+    pub const ALL: [PanelKind; 35] = [
+        PanelKind::Tools,
         PanelKind::Project,
         PanelKind::EffectControls,
         PanelKind::Composition,
@@ -93,6 +95,7 @@ impl PanelKind {
     ];
     pub fn title(self) -> &'static str {
         match self {
+            PanelKind::Tools => "Tools",
             PanelKind::Project => "Project",
             PanelKind::EffectControls => "Effect Controls",
             PanelKind::Composition => "Composition",
@@ -141,6 +144,7 @@ impl PanelKind {
     /// Window-menu shortcut.
     pub fn window_shortcut(self) -> Option<&'static str> {
         match self {
+            PanelKind::Tools => Some("Cmd+1"),
             PanelKind::Project => Some("Cmd+0"),
             PanelKind::Info => Some("Cmd+2"),
             PanelKind::Preview => Some("Cmd+3"),
@@ -280,6 +284,7 @@ fn vsplit(size: SplitSize, a: DockNode, b: DockNode) -> DockNode {
 /// Composition panel.
 pub const WORKSPACES: &[&str] = &[
     "Default",
+    "Editing",
     "Standard",
     "Small Screen",
     "Animation",
@@ -445,12 +450,26 @@ pub fn workspace(name: &str) -> DockNode {
             ),
             tabs(&[Timeline, RenderQueue], 0),
         ),
-        // Default (as in After Effects): Project/Effect Controls | Composition over the Timeline,
-        // and a full-height right column with Preview above the Properties panel.
+        // A fresh named workspace lets existing users adopt the fork layout without deleting
+        // a saved Default layout.
+        "Editing" => hsplit(
+            FixedB(320.0),
+            vsplit(
+                Ratio(0.64),
+                hsplit(FixedA(260.0), tabs(&[Tools, Project, EffectsPresets], 0), tabs(&[Composition, Layer], 0)),
+                tabs(&[Timeline, RenderQueue], 0),
+            ),
+            stack(&[(Properties, true, None), (EffectControls, false, None), (Align, false, None), (Audio, false, None), (Preview, false, Some(260.0))]),
+        ),
+        // Fork default: tool sidebar, canvas transport, and contextual Inspector.
         _ => hsplit(
             FixedB(300.0),
-            vsplit(Ratio(0.56), hsplit(FixedA(300.0), tabs(&[Project, EffectControls], 0), tabs(&[Composition, Layer], 0)), tabs(&[Timeline, RenderQueue], 0)),
-            stack(&[(Preview, true, Some(46.0)), (Properties, true, None), (Align, false, None), (Audio, false, None), (EffectsPresets, false, None)]),
+            vsplit(
+                Ratio(0.62),
+                hsplit(FixedA(250.0), tabs(&[Tools, Project, EffectsPresets], 0), tabs(&[Composition, Layer], 0)),
+                tabs(&[Timeline, RenderQueue], 0),
+            ),
+            stack(&[(Properties, true, None), (EffectControls, false, None), (Align, false, None), (Audio, false, None), (Preview, false, Some(260.0))]),
         ),
     }
 }
@@ -1234,6 +1253,17 @@ pub fn draw_group_chrome(ui: &mut egui::Ui, g: &Group, t: &Tokens, reg: &mut cra
                 None => out.tabs.push((*p, tab)),
             }
             let resp = ui.interact(tab, egui::Id::new(("tab", g.path.clone(), k)), Sense::click_and_drag());
+            painter.rect_filled(
+                tab.shrink2(vec2(1.0, 3.0)),
+                4.0,
+                if is_active {
+                    t.row_selected
+                } else if resp.hovered() {
+                    t.hover
+                } else {
+                    t.field_bg
+                },
+            );
             if resp.drag_started() {
                 out.actions.push(DockAction::BeginDrag(*p));
             }
@@ -1297,8 +1327,6 @@ pub fn draw_group_chrome(ui: &mut egui::Ui, g: &Group, t: &Tokens, reg: &mut cra
                 for dy in [-3.5, 0.0, 3.5] {
                     painter.line_segment([pos2(mr.min.x, mr.center().y + dy), pos2(mr.max.x, mr.center().y + dy)], Stroke::new(1.5, mc));
                 }
-                let uy = strip.min.y + 23.0;
-                painter.line_segment([pos2(label_x, uy), pos2(mr.max.x, uy)], Stroke::new(1.0, t.tab_text_active));
                 crate::widgets::focus_outline(ui, &mresp, t);
                 if mresp.clicked() {
                     out.actions.push(DockAction::PanelMenu(*p, mr.left_bottom()));
@@ -1483,9 +1511,11 @@ mod tests {
     }
 
     #[test]
-    fn default_workspace_has_ae_right_column_stack() {
+    fn default_workspace_keeps_assets_and_preview_accessible_beside_tools() {
         let d = workspace("Default");
-        assert!(d.is_visible(PanelKind::Properties) && d.is_visible(PanelKind::Preview));
+        assert!(d.is_visible(PanelKind::Properties) && d.is_visible(PanelKind::Tools));
+        assert!(d.contains(PanelKind::Project) && d.contains(PanelKind::Preview));
+        assert!(!d.is_visible(PanelKind::Project) && !d.is_visible(PanelKind::Preview));
         assert!(d.contains(PanelKind::EffectsPresets) && !d.is_visible(PanelKind::EffectsPresets));
     }
 

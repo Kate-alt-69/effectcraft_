@@ -1,12 +1,8 @@
-<p align="center">
-  <a href="https://getartcraft.com/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/brand/artcraft-logo-white.svg">
-      <img alt="ArtCraft" src="docs/brand/artcraft-logo.svg" width="200">
-    </picture>
-  </a>
-</p>
+# EffectCraft community fork
 
+This fork is maintained at [Kate-alt-69/effectcraft_](https://github.com/Kate-alt-69/effectcraft_).
+It is based on EffectCraft by the ArtCraft team, with an independent editing layout and original additions.
+See [Plan.md](Plan.md) for the living plan and [docs/fork-workflow.md](docs/fork-workflow.md) for this fork's controls and effects.
 
 <h1 align="center">EffectCraft</h1>
 
@@ -16,7 +12,7 @@
 
 <p align="center">
   A free, open-source compositor in the spirit of After Effects: compositions, layers,
-  keyframes, 306 effects, layer styles, expressions, 3D cameras and lights, and a render queue, native on macOS,
+  keyframes, 309 effects, layer styles, expressions, 3D cameras and lights, and a render queue, native on macOS,
   Windows and Linux, and in the browser. Young, moving fast, and already usable.
 </p>
 
@@ -371,8 +367,7 @@ Forks and modified versions must remove them.
 <sub>Adobe, Photoshop, Illustrator, Premiere Pro, Lightroom, Acrobat, After Effects and InDesign are trademarks or registered trademarks of Adobe Inc. in the United States and/or other countries. EffectCraft is an independent, open-source project and is not affiliated with, sponsored by or endorsed by Adobe Inc.; these names are used only to describe the workflows it is compatible with.</sub>
 
 <p align="center">
-  <a href="https://getartcraft.com/"><img alt="ArtCraft" src="docs/brand/artcraft-mark.svg" width="28"></a><br>
-  <sub>Made by the <a href="https://getartcraft.com/">ArtCraft</a> team and community.</sub>
+  <sub>This community fork is based on EffectCraft by the <a href="https://getartcraft.com/">ArtCraft</a> team and community.</sub>
 </p>
 
 ## Star history

@@ -159,6 +159,59 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
         y += 24.0;
     }
 
+    // A usable effect stack beside the layer's transform and typography. Engine commands
+    // preserve the same undo, ordering, and automation semantics as Effect Controls.
+    if let Some(stack) = layer.effects() {
+        divider(&p, x0, w, y + 8.0, &t);
+        y += 16.0;
+        section_header(app, ui, &p, x0, w, y, "Effects", "properties.effects");
+        y += ROW_H + 4.0;
+        let effects: Vec<_> = stack.groups().collect();
+        for (index, effect) in effects.iter().enumerate() {
+            let row = Rect::from_min_size(pos2(x0, y), vec2(w, 56.0));
+            ui.scope_builder(egui::UiBuilder::new().max_rect(row), |ui| {
+                ui.push_id(("inspector-effect", effect.uid), |ui| {
+                    let mut enabled = effect.enabled;
+                    let r = ui.checkbox(&mut enabled, &effect.name);
+                    app.auto.add_response(&format!("properties.effect.{}.enabled", effect.uid), &r, &effect.name);
+                    if r.changed() {
+                        actions.push(("effect.toggle".into(), json!({"layer": layer.id.0, "effect": effect.uid, "value": enabled})));
+                    }
+                    ui.horizontal(|ui| {
+                        let edit = ui.button(tr("Edit"));
+                        app.auto.add_response(&format!("properties.effect.{}.edit", effect.uid), &edit, "Edit Effect");
+                        if edit.clicked() {
+                            app.session.state.selected_props = vec![(layer.id, effect.uid)];
+                            app.show_panel(PanelKind::EffectControls);
+                        }
+                        for (label, action, enabled, position) in [
+                            ("↑", "effect.reorder", index > 0, index),
+                            ("↓", "effect.reorder", index + 1 < effects.len(), index + 2),
+                            ("Reset", "effect.reset", true, 0),
+                            ("Remove", "effect.remove", true, 0),
+                        ] {
+                            let r = ui.add_enabled(enabled, egui::Button::new(tr(label)));
+                            app.auto.add_response(&format!("properties.effect.{}.{}", effect.uid, label), &r, label);
+                            if r.clicked() {
+                                actions.push((action.into(), json!({"layer": layer.id.0, "effect": effect.uid, "index": position})));
+                            }
+                        }
+                    });
+                });
+            });
+            y += 60.0;
+        }
+        let row = Rect::from_min_size(pos2(x0, y), vec2(w, 26.0));
+        ui.scope_builder(egui::UiBuilder::new().max_rect(row), |ui| {
+            let r = ui.button(tr("+ Add effect or preset"));
+            app.auto.add_response("properties.effects.add", &r, "Add effect or preset");
+            if r.clicked() {
+                app.show_panel(PanelKind::EffectsPresets);
+            }
+        });
+        y += 30.0;
+    }
+
     y += 40.0;
     scroll.end(ui, &mut app.auto, "properties.scroll", y - top, &t);
     for (id, params) in actions {

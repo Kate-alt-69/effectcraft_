@@ -48,6 +48,7 @@ pub mod shortcut_editor;
 pub mod templates;
 pub mod text_panels;
 pub mod timeline;
+pub mod tools;
 pub mod tracker;
 pub mod unsaved;
 pub mod viewer;
@@ -135,6 +136,7 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, p: PanelKind, rect: Rec
         PanelKind::Composition => viewers::show(app, ui, 0, rect),
         PanelKind::Viewer(n) => viewers::show(app, ui, n, rect),
         PanelKind::Timeline => timeline::show(app, ui, rect),
+        PanelKind::Tools => tools::show(app, ui, rect),
         PanelKind::Project => project::show(app, ui, rect),
         PanelKind::EffectControls => effect_controls::show(app, ui, rect),
         PanelKind::EffectsPresets => effects_presets::show(app, ui, rect),

@@ -11,6 +11,14 @@ use egui_kittest::Harness;
 use serde_json::json;
 
 /// "Pre" and "Main" (Main holds Pre); only Main is open.
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(PanelKind::Preview);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn harness() -> (Harness<'static, EffectcraftApp>, u64, u64) {
     let mut s = Session::default();
     let pre = s.execute("comp.new", json!({"name": "Pre", "width": 320, "height": 180, "duration": 4})).unwrap()["comp"].as_u64().unwrap();
@@ -18,7 +26,7 @@ fn harness() -> (Harness<'static, EffectcraftApp>, u64, u64) {
     s.execute("layer.addItem", json!({"item": pre})).unwrap();
     s.state.open_comps = vec![ItemId(main)];
     s.state.active_comp = Some(ItemId(main));
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     (h, pre, main)
 }
@@ -217,6 +225,15 @@ fn panels_dock_beside_others_and_gutters_resize_them() {
 #[test]
 fn stacked_panel_gaps_resize_the_panels() {
     let (mut h, _, _) = harness();
+    // Put Preview above Properties to exercise the gap between these two open panels.
+    if let DockNode::Split { b, .. } = &mut h.state_mut().ui.dock
+        && let DockNode::Stack { entries } = b.as_mut()
+    {
+        let index = entries.iter().position(|entry| entry.contains(PanelKind::Preview)).unwrap();
+        let preview = entries.remove(index);
+        entries.insert(0, preview);
+    }
+    h.run_steps(3);
     fn height(n: &DockNode, p: PanelKind) -> Option<Option<f32>> {
         match n {
             DockNode::Split { a, b, .. } => height(a, p).or_else(|| height(b, p)),

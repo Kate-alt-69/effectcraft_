@@ -340,6 +340,17 @@ pub fn install(ctx: &egui::Context, t: &Tokens, language: &str) {
     fonts.families.entry(FontFamily::Monospace).or_default().insert(0, "jbmono".into());
     fonts.families.insert(FontFamily::Name("semibold".into()), vec!["inter-semibold".into(), "inter".into()]);
     fonts.families.insert(FontFamily::Name("medium".into()), vec!["inter-medium".into(), "inter".into()]);
+    // Named weights need the same bundled symbol fallbacks as the regular UI family.
+    let fallback = fonts.families.get(&FontFamily::Proportional).cloned().unwrap_or_default();
+    for name in ["medium", "semibold"] {
+        if let Some(stack) = fonts.families.get_mut(&FontFamily::Name(name.into())) {
+            for face in &fallback {
+                if !stack.contains(face) {
+                    stack.push(face.clone());
+                }
+            }
+        }
+    }
     // Inter and egui's own fallbacks have no small triangles (the `▸` of "File ▸ Import"), which
     // would draw as missing-glyph boxes: JetBrains Mono fills in the symbols the others lack.
     for (family, stack) in &mut fonts.families {

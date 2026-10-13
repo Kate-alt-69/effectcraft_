@@ -777,7 +777,7 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
     }
 
     // Bottom control bar.
-    let bar_h = 36.0;
+    let bar_h = 72.0;
     let bar = Rect::from_min_max(pos2(rect.min.x, rect.max.y - bar_h), rect.max);
     // The expression error bar sits above the control bar while expressions fail.
     let err_h = super::expr_bar::height(app, &ctx, cid);

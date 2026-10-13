@@ -27,7 +27,7 @@ fn every_transition_preset_applies_and_transitions() {
     let list = s.execute("anim.builtinPresets", json!({"category": "Transitions"})).unwrap();
     let list = list.as_array().unwrap().clone();
     assert!(list.len() >= 20, "{}", list.len());
-    assert_eq!(crate::animation_presets().len(), list.len());
+    assert_eq!(crate::animation_presets().iter().filter(|(_, _, category)| category == "Transitions").count(), list.len());
     let start = 0.5;
     for p in &list {
         let id = p["id"].as_str().unwrap();
@@ -71,4 +71,43 @@ fn transition_preset_by_name_and_bad_input() {
     // A layer without effects (a camera) refuses effect presets.
     let cam = s.execute("layer.newCamera", json!({})).unwrap()["layer"].as_u64().unwrap();
     assert!(s.execute("anim.applyBuiltinPreset", json!({"layers": [cam], "preset": "clockReveal"})).is_err());
+}
+
+#[test]
+fn creative_library_applies_without_missing_properties_and_undo_restores_layers() {
+    let (mut s, solid) = session();
+    let entries: serde_json::Value = serde_json::from_str(include_str!("../presets/creative.json")).unwrap();
+    let entries = entries["presets"].as_array().unwrap();
+    assert_eq!(entries.len(), 28);
+    let baseline = s.active_comp().unwrap().layers[0].clone();
+    let mut ids = std::collections::HashSet::new();
+    for preset in entries {
+        let id = preset["id"].as_str().unwrap();
+        assert!(ids.insert(id));
+        let r = s.execute("anim.applyBuiltinPreset", json!({"layers": [solid], "preset": id})).unwrap();
+        assert_eq!(r["skipped"], json!([]), "{id}: every property must exist and accept its value");
+        for time in [0.0, 0.5, 2.0] {
+            let image = s.render(s.active_comp_id().unwrap(), Tick::from_seconds_f64(time), RenderOpts { scale: 0.5, ..Default::default() });
+            assert!(image.data.iter().flatten().all(|v| v.is_finite()), "{id}");
+        }
+        s.execute("edit.undo", json!({})).unwrap();
+        assert_eq!(s.active_comp().unwrap().layers[0], baseline, "{id}: one undo restores everything");
+    }
+    assert_eq!(crate::animation_presets().len() + crate::text_presets().len(), 71);
+}
+
+#[test]
+fn background_point_keys_follow_layer_bounds_and_layer_time() {
+    let (mut s, solid) = session();
+    s.execute("time.set", json!({"time": 1.0})).unwrap();
+    s.execute("anim.applyBuiltinPreset", json!({"layers": [solid], "preset": "auroraMesh"})).unwrap();
+    let layer = &s.active_comp().unwrap().layers[0];
+    let point = layer.effects().unwrap().groups().next().unwrap().prop("point5").unwrap();
+    assert_eq!(point.keys[0].time, Tick::from_seconds_f64(1.0));
+    assert_eq!(point.keys[0].value.as_vec2(), [32.0, 36.0]);
+    assert_eq!(point.keys[1].value.as_vec2(), [128.0, 54.0]);
+    let cid = s.active_comp_id().unwrap();
+    let first = s.render(cid, Tick::from_seconds_f64(1.0), RenderOpts { scale: 1.0, ..Default::default() });
+    let last = s.render(cid, Tick::from_seconds_f64(4.0), RenderOpts { scale: 1.0, ..Default::default() });
+    assert_ne!(first.data, last.data, "animated gradient point keys must change the rendered frame, including through the layer cache");
 }

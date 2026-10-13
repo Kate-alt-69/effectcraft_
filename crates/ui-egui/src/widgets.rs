@@ -3,6 +3,7 @@
 use egui::{Align2, Color32, Rect, Response, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
 
 use crate::automation::Registry;
+use crate::i18n::tr;
 use crate::icons::{self, Icon};
 use crate::theme::Tokens;
 
@@ -47,7 +48,7 @@ fn tab_stop(ui: &Ui, id: egui::Id) -> bool {
     })
 }
 
-/// "Hot text": a blue number you drag horizontally to scrub, click to type. Tab / Shift+Tab
+/// Compact numeric field: drag horizontally to scrub, click to type. Tab / Shift+Tab
 /// while typing commits and types in the panel's next / previous one, as in After Effects.
 /// Returns (response, Some(new value) when changed, drag finished).
 pub fn hot_number_at(
@@ -68,7 +69,7 @@ pub fn hot_number_at(
     }
     let text = format!("{value:.decimals$}{suffix}");
     let galley = ui.painter().layout_no_wrap(text, Tokens::ui(12.0), t.hot_text);
-    let rect = Rect::from_min_size(rect_min, galley.size() + vec2(4.0, 4.0));
+    let rect = Rect::from_min_size(rect_min, vec2((galley.size().x + 12.0).max(32.0), 20.0));
     if let Some(mut buf) = editing {
         let er = Rect::from_min_size(rect_min - vec2(2.0, 1.0), vec2((galley.size().x + 24.0).max(54.0), 18.0));
         let mut child = ui.new_child(egui::UiBuilder::new().max_rect(er));
@@ -103,18 +104,26 @@ pub fn hot_number_at(
         }
         return (er, out, out.is_some());
     }
-    let resp = ui.interact(rect, id, Sense::click_and_drag());
+    let resp = ui.interact(rect, id, Sense::click_and_drag()).on_hover_text(tr("Drag to adjust · Click to type · Shift: coarse · Ctrl/Cmd: fine"));
     crate::pointer_wrap::track(&resp);
     let col = if resp.hovered() || resp.dragged() { t.accent_hover } else { t.hot_text };
-    ui.painter().galley_with_override_text_color(rect.min + vec2(2.0, 2.0), galley, col);
+    ui.painter().rect_filled(
+        rect,
+        3.0,
+        if resp.dragged() {
+            t.pressed
+        } else if resp.hovered() {
+            t.hover
+        } else {
+            t.field_bg
+        },
+    );
+    ui.painter().rect_stroke(rect, 3.0, Stroke::new(1.0, if resp.has_focus() || resp.dragged() { t.accent } else { t.field_border }), StrokeKind::Inside);
+    let text_pos = pos2(rect.min.x + 6.0, rect.center().y - galley.size().y * 0.5);
+    ui.painter().galley_with_override_text_color(text_pos, galley, col);
     if resp.hovered() || resp.dragged() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
     }
-    let y = rect.max.y - 2.0;
-    ui.painter().line_segment(
-        [pos2(rect.min.x + 2.0, y), pos2(rect.max.x - 2.0, y)],
-        egui::Stroke::new(1.0, col.gamma_multiply(if resp.hovered() { 0.8 } else { 0.35 })),
-    );
     let mut out = None;
     if resp.dragged() {
         let dx = resp.drag_delta().x as f64;

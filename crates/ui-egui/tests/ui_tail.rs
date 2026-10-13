@@ -7,11 +7,18 @@ use egui::{Event, Pos2, Rect, pos2, vec2};
 use egui_kittest::Harness;
 use serde_json::json;
 
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn harness(w: f32) -> Harness<'static, EffectcraftApp> {
     let mut s = Session::default();
     s.execute("comp.new", json!({"name": "Tail", "width": 640, "height": 360, "duration": 4})).unwrap();
     s.execute("layer.newSolid", json!({"name": "Plate", "color": "#406080", "width": 640, "height": 360})).unwrap();
-    let mut h = Harness::builder().with_size(egui::vec2(w, 900.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(w, 900.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     h
 }

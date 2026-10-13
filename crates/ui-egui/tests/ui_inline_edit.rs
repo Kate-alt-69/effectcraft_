@@ -8,11 +8,18 @@ use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
 use serde_json::json;
 
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn harness() -> (Harness<'static, EffectcraftApp>, u64) {
     let mut s = Session::default();
     s.execute("comp.new", json!({"name": "Main", "width": 320, "height": 180, "duration": 4, "fps": 24})).unwrap();
     let comp = s.active_comp_id().unwrap().0;
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(4);
     (h, comp)
 }
@@ -288,6 +295,12 @@ fn the_pick_whip_scrolls_the_timeline_at_its_edges() {
 #[test]
 fn the_expression_field_grows_while_editing_and_drags_taller() {
     let (mut h, _) = harness();
+    // Leave room to grab the bottom of the expanded seven-line editor.
+    if let effectcraft_ui_egui::dock::DockNode::Split { a, .. } = &mut h.state_mut().ui.dock
+        && let effectcraft_ui_egui::dock::DockNode::Split { size, .. } = a.as_mut()
+    {
+        *size = effectcraft_ui_egui::dock::SplitSize::Ratio(0.45);
+    }
     let (layer, opacity, transform) = {
         let s = &mut h.state_mut().session;
         let l = s.execute("layer.newSolid", json!({"name": "Plate", "color": "#406080"})).unwrap()["layer"].as_u64().unwrap();

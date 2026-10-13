@@ -11,6 +11,13 @@ use egui_kittest::kittest::Queryable;
 use serde_json::json;
 
 /// A closed folder holding a comp, and a solid at the project root: (harness, folder, comp, solid).
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn harness() -> (Harness<'static, EffectcraftApp>, ItemId, ItemId, ItemId) {
     let mut s = Session::default();
     let comp = ItemId(s.execute("comp.new", json!({"name": "Main", "width": 320, "height": 180, "duration": 4})).unwrap()["comp"].as_u64().unwrap());
@@ -20,7 +27,7 @@ fn harness() -> (Harness<'static, EffectcraftApp>, ItemId, ItemId, ItemId) {
     s.execute("project.move", json!({"items": [comp.0], "folder": folder.0})).unwrap();
     s.execute("project.move", json!({"items": [solid.0], "folder": null})).unwrap();
     s.execute("project.select", json!({"items": []})).unwrap();
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     (h, folder, comp, solid)
 }
@@ -209,7 +216,7 @@ fn dragging_in_the_empty_area_box_selects_items() {
 #[test]
 fn a_short_project_panel_draws() {
     for height in [400.0, 300.0] {
-        let mut h = Harness::builder().with_size(egui::vec2(640.0, height)).build_eframe(|_| EffectcraftApp::new(Session::default()));
+        let mut h = Harness::builder().with_size(egui::vec2(640.0, height)).build_eframe(|_| project_app(Session::default()));
         h.run_steps(3);
         assert!(h.state().auto.find("project.empty").is_some(), "the Project panel drew at {height} points");
     }

@@ -985,10 +985,6 @@ pub fn frontend(app: &mut EffectcraftApp, ctx: &egui::Context, id: &str, p: Valu
         }
         "window.panel" => {
             let name = p.get("panel").and_then(Value::as_str).unwrap_or_default();
-            if name.eq_ignore_ascii_case("tools") {
-                app.ui.status = "The Tools panel is the toolbar in the header".into();
-                return Ok(Value::Null);
-            }
             let panel = PanelKind::from_name(name).ok_or_else(|| format!("unknown panel `{name}`"))?;
             app.show_panel(panel);
             Value::Null
@@ -1426,8 +1422,8 @@ pub(crate) fn entry_checked(app: &EffectcraftApp, e: &MenuEntry) -> Option<bool>
         "playback.cacheWhenIdle" => Some(app.ui.cache_when_idle),
         "playback.audio" => Some(app.session.prefs.preview.active().include_audio),
         "window.workspace" => Some(pstr("name").is_some_and(|n| n == app.ui.workspace)),
-        // The Tools panel is the header toolbar: always on screen.
-        "window.panel" => Some(pstr("panel").is_some_and(|n| n.eq_ignore_ascii_case("tools") || PanelKind::from_name(n).is_some_and(|p| panel_shown(app, p)))),
+        // Tools is a dockable palette; its menu check tracks actual visibility.
+        "window.panel" => Some(pstr("panel").is_some_and(|n| PanelKind::from_name(n).is_some_and(|p| panel_shown(app, p)))),
         "view.panelBackground" if e.params.get("pick").is_none() => {
             let cur = match v.pasteboard {
                 None => "mediumGray",

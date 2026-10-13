@@ -1152,7 +1152,8 @@ View
   Enter Full Screen | view.fullScreen
 Window
   Workspace
-    Default | window.workspace {"name":"Default"} | Shift+F10
+    Default | window.workspace {"name":"Default"}
+    Editing | window.workspace {"name":"Editing"} | Shift+F10
     Review | window.workspace {"name":"Review"}
     Learn | window.workspace {"name":"Learn"}
     Small Screen | window.workspace {"name":"Small Screen"} | Shift+F12

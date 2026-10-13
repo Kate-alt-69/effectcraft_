@@ -14,23 +14,15 @@ pub fn placeholder(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect, p: P
     ui.painter().text(rect.center(), Align2::CENTER_CENTER, tr_args("{} — coming soon", &[&(p.title())]), Tokens::ui(12.0), t.text_faint);
 }
 
-/// Preview panel: transport controls, the shortcut whose options are shown, and that
-/// shortcut's options (each Preview shortcut keeps its own; see `effectcraft_engine::preview`).
-/// Every change runs `playback.settings.set`.
-pub fn preview(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
-    use effectcraft_engine::preview::{PlayFrom, PreviewRange, PreviewResolution, PreviewShortcut};
+/// Shared transport for the canvas and the optional Preview settings panel.
+/// The prefix keeps widget and automation identities unique when both are visible.
+pub(crate) fn transport(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect, prefix: &str) {
     let t = app.tokens;
     let ctx = ui.ctx().clone();
-    let p = ui.painter().with_clip_rect(rect);
-    // The panel scrolls when it is shorter than its controls (the default workspace shows just
-    // the transport row, as in After Effects).
-    let scroll = widgets::PanelScroll::begin(ui, egui::Id::new("preview-scroll"), rect);
-    let panel_clip = ui.clip_rect();
-    ui.set_clip_rect(rect.intersect(panel_clip));
-    let y = rect.min.y + 12.0 - scroll.offset;
-    let bw = 30.0;
-    let total = bw * 5.0 + 16.0;
-    let mut x = rect.center().x - total / 2.0;
+    let bw = ((rect.width() - 64.0) / 5.0).clamp(16.0, 30.0);
+    let total = bw * 5.0 + 16.0 + 54.0;
+    let mut x = rect.center().x - total * 0.5;
+    let y = rect.center().y - 14.0;
     let buttons: [(Icon, &str, &str); 5] = [
         (Icon::First, "time.start", "First Frame"),
         (Icon::StepBack, "time.previousFrame", "Previous Frame"),
@@ -42,14 +34,45 @@ pub fn preview(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
     for (icon, cmd, tip) in buttons {
         let r = Rect::from_min_size(pos2(x, y), vec2(bw, 28.0));
         let icon = if cmd == "playback.toggle" && app.playback.playing { Icon::Pause } else { icon };
-        if widgets::icon_button(ui, r, icon, cmd == "playback.toggle" && app.playback.playing, &t, egui::Id::new(("pv", cmd))).on_hover_text(tip).clicked() {
-            // The play button plays with the options of the shortcut shown below.
+        let response =
+            widgets::icon_button(ui, r, icon, cmd == "playback.toggle" && app.playback.playing, &t, egui::Id::new((prefix, cmd))).on_hover_text(tr(tip));
+        app.auto.add_response(&format!("{prefix}.{}", tip.replace([' ', '/'], "")), &response, tip);
+        if response.clicked() {
             let params = if cmd == "playback.toggle" { json!({"shortcut": current.id()}) } else { json!({}) };
-            let _ = crate::menus::invoke(app, &ctx, cmd, params);
+            if let Err(e) = crate::menus::invoke(app, &ctx, cmd, params) {
+                app.ui.status = e;
+            }
         }
-        app.auto.add(&format!("preview.{}", tip.replace([' ', '/'], "")), r, tip);
         x += bw + 4.0;
     }
+    let looping = app.session.prefs.preview.get(current).loop_;
+    let r = Rect::from_min_size(pos2(x, y + 2.0), vec2(50.0, 24.0));
+    ui.scope_builder(egui::UiBuilder::new().max_rect(r), |ui| {
+        let response = ui.add_sized(r.size(), egui::Button::new(tr("Loop")).selected(looping)).on_hover_text(tr("Loop preview playback"));
+        app.auto.add_response(&format!("{prefix}.Loop"), &response, "Loop");
+        if response.clicked()
+            && let Err(e) = app.session.execute("playback.settings.set", json!({"shortcut": current.id(), "loop": !looping}))
+        {
+            app.ui.status = e.to_string();
+        }
+    });
+}
+
+/// Preview panel: transport controls, the shortcut whose options are shown, and that
+/// shortcut's options (each Preview shortcut keeps its own; see `effectcraft_engine::preview`).
+/// Every change runs `playback.settings.set`.
+pub fn preview(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
+    use effectcraft_engine::preview::{PlayFrom, PreviewRange, PreviewResolution, PreviewShortcut};
+    let t = app.tokens;
+    let p = ui.painter().with_clip_rect(rect);
+    // The panel scrolls when it is shorter than its controls (the default workspace shows just
+    // the transport row, as in After Effects).
+    let scroll = widgets::PanelScroll::begin(ui, egui::Id::new("preview-scroll"), rect);
+    let panel_clip = ui.clip_rect();
+    ui.set_clip_rect(rect.intersect(panel_clip));
+    let y = rect.min.y + 12.0 - scroll.offset;
+    transport(app, ui, Rect::from_min_size(pos2(rect.min.x, y), vec2(rect.width(), 28.0)), "preview");
+    let current = app.session.prefs.preview.current;
     let o = app.session.prefs.preview.get(current).clone();
     let mut changes: Vec<serde_json::Value> = vec![];
     let x0 = rect.min.x + 12.0;

@@ -45,6 +45,49 @@ fn fxs_qdiv(x: vec3<f32>, a: f32) -> vec3<f32> {
     return fma(r / a, vec3<f32>(1.0), q);
 }
 
+// WGSL fma need not be fused on a software device. Near a hard threshold, recover the
+// CPU's round-to-nearest-even quotient using integer significands, rather than trusting
+// the residual above. The bounded division runs only within one rounding neighborhood.
+fn fxs_bin_ratio(x: f32, a: f32, approximate: f32, t: f32, inv: bool) -> f32 {
+    var c = approximate;
+    if (abs(c - t) <= max(abs(t) * 0.000001, 0.00000001) && x > 0.0) {
+        let xb = bitcast<u32>(x);
+        let ab = bitcast<u32>(a);
+        let xe = (xb >> 23u) & 255u;
+        let ae = (ab >> 23u) & 255u;
+        if (xe > 0u && xe < 255u && ae > 0u && ae < 255u) {
+            var numerator = (xb & 8388607u) | 8388608u;
+            let denominator = (ab & 8388607u) | 8388608u;
+            var exponent = i32(xe) - i32(ae) + 127;
+            if (numerator < denominator) {
+                numerator *= 2u;
+                exponent -= 1;
+            }
+            numerator -= denominator;
+            var quotient = 1u;
+            for (var bit = 0u; bit < 23u; bit++) {
+                numerator *= 2u;
+                quotient *= 2u;
+                if (numerator >= denominator) {
+                    numerator -= denominator;
+                    quotient += 1u;
+                }
+            }
+            if (numerator * 2u > denominator || (numerator * 2u == denominator && (quotient & 1u) != 0u)) {
+                quotient += 1u;
+                if (quotient == 16777216u) {
+                    quotient >>= 1u;
+                    exponent += 1;
+                }
+            }
+            if (exponent > 0 && exponent < 255) {
+                c = bitcast<f32>((u32(exponent) << 23u) | (quotient & 8388607u));
+            }
+        }
+    }
+    return fxs_bin(c, t, inv);
+}
+
 fn fxs_rem2(i: i32) -> i32 {
     return imod(i, 2);
 }
@@ -133,7 +176,7 @@ fn fxs_point(@builtin(global_invocation_id) gid: vec3<u32>) {
         case 4u: {
             let c = fxs_qdiv(px.xyz, a);
             let t = P.f[0].xyz;
-            let o = vec3<f32>(fxs_bin(c.x, t.x, P.u[0].y != 0u), fxs_bin(c.y, t.y, P.u[0].z != 0u), fxs_bin(c.z, t.z, P.u[0].w != 0u));
+            let o = vec3<f32>(fxs_bin_ratio(px.x, a, c.x, t.x, P.u[0].y != 0u), fxs_bin_ratio(px.y, a, c.y, t.y, P.u[0].z != 0u), fxs_bin_ratio(px.z, a, c.z, t.z, P.u[0].w != 0u));
             let r = o + (c - o) * P.f[0].w;
             textureStore(out, p, vec4<f32>(r * a, a));
         }

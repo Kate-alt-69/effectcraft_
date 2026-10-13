@@ -6,6 +6,13 @@ use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable as _;
 use serde_json::json;
 
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn harness() -> Harness<'static, EffectcraftApp> {
     let mut s = Session::default();
     s.execute("comp.new", json!({"name":"Study", "width":640,"height":360,"duration":4})).unwrap();
@@ -13,7 +20,7 @@ fn harness() -> Harness<'static, EffectcraftApp> {
         s.execute("layer.newSolid", json!({"name":format!("Tile {n}"),"width":80,"height":80,"color":"#406080"})).unwrap();
     }
     s.execute("edit.deselectAll", json!({})).unwrap();
-    let mut h = Harness::builder().with_size(vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     h
 }
@@ -344,7 +351,7 @@ fn project_edit_commands_do_not_target_timeline_layers() {
 
 #[test]
 fn compact_settings_keeps_confirmation_buttons_clickable() {
-    let mut h = Harness::builder().with_size(vec2(1024.0, 768.0)).build_eframe(|_| EffectcraftApp::new(Session::default()));
+    let mut h = Harness::builder().with_size(vec2(1024.0, 768.0)).build_eframe(|_| project_app(Session::default()));
     h.state_mut().dialog = Some(effectcraft_ui_egui::Dialog::Settings);
     h.run_steps(4);
     h.get_by_label("   OK   ").click();

@@ -286,7 +286,11 @@ fn mesh_warp_vertices_drag_on_the_viewer() {
 fn composition_tabs_and_scrolling_preview() {
     let mut s = Session::default();
     s.execute("file.openDemoProject", json!({})).unwrap();
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| {
+        let mut app = EffectcraftApp::new(s);
+        app.show_panel(PanelKind::Preview);
+        app
+    });
     h.run_steps(4);
     rect(&h, "panel.tab.Timeline.close");
     rect(&h, "preview.scroll");

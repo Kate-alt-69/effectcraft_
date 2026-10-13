@@ -18,12 +18,49 @@ use crate::{EngineError, Result, Session, cmd, query};
 
 /// The original transition presets (`presets/transitions.json`).
 pub const TRANSITIONS_JSON: &str = include_str!("../../presets/transitions.json");
+/// Original fork additions, kept separate so upstream library updates merge cleanly.
+pub const CREATIVE_JSON: &str = include_str!("../../presets/creative.json");
 
 /// Keys per animated property, so a hostile inline preset can't allocate without bound.
 const MAX_KEYS: usize = 256;
 
-fn presets() -> Vec<Value> {
-    serde_json::from_str::<Value>(TRANSITIONS_JSON).ok().and_then(|v| v.get("presets").and_then(Value::as_array).cloned()).unwrap_or_default()
+fn presets() -> &'static [Value] {
+    static LIBRARY: std::sync::OnceLock<Vec<Value>> = std::sync::OnceLock::new();
+    LIBRARY.get_or_init(|| {
+        [TRANSITIONS_JSON, CREATIVE_JSON]
+            .into_iter()
+            .flat_map(|source| serde_json::from_str::<Value>(source).ok().and_then(|v| v.get("presets").and_then(Value::as_array).cloned()).unwrap_or_default())
+            .collect()
+    })
+}
+
+/// Resolve explicitly normalized effect points against each target layer, including animated
+/// points. Ordinary presets retain their existing pixel-coordinate behavior.
+fn resolve_points(preset: &Value, effect: &effectcraft_effects::EffectSpec, size: [f64; 2]) -> Value {
+    let mut resolved = preset.clone();
+    if !preset.get("normalizedPoints").and_then(Value::as_bool).unwrap_or(false) {
+        return resolved;
+    }
+    let scale = |v: &mut Value| {
+        let (Some(x), Some(y)) = (v.get(0).and_then(Value::as_f64), v.get(1).and_then(Value::as_f64)) else { return };
+        let point = [x * size[0], y * size[1]];
+        if point.iter().all(|v| v.is_finite()) {
+            *v = json!(point);
+        }
+    };
+    for param in effect.params.iter().filter(|p| matches!(p.ui, effectcraft_project::ParamUi::Point)) {
+        if let Some(v) = resolved.get_mut("set").and_then(|v| v.get_mut(param.id)) {
+            scale(v);
+        }
+        if let Some(keys) = resolved.get_mut("keys").and_then(|v| v.get_mut(param.id)).and_then(Value::as_array_mut) {
+            for key in keys {
+                if let Some(v) = key.get_mut(1) {
+                    scale(v);
+                }
+            }
+        }
+    }
+    resolved
 }
 
 fn text<'a>(v: &'a Value, key: &str) -> Option<&'a str> {
@@ -39,7 +76,7 @@ pub fn preset_names() -> Vec<(String, String, String)> {
 }
 
 fn find_preset(want: &str) -> Option<Value> {
-    presets().into_iter().find(|x| text(x, "id") == Some(want) || text(x, "name").is_some_and(|n| n.eq_ignore_ascii_case(want)))
+    presets().iter().find(|x| text(x, "id") == Some(want) || text(x, "name").is_some_and(|n| n.eq_ignore_ascii_case(want))).cloned()
 }
 
 /// Set `pr` to `v` (when given) and replace its keys with `keys` (`[[seconds, value], …]`,
@@ -134,7 +171,8 @@ fn apply(s: &mut Session, p: &Value) -> Result<Value> {
                     let same = fx.groups().filter(|g| g.match_id == spec.id).count();
                     let inst = if same == 0 { spec.name.to_string() } else { format!("{} {}", spec.name, same.saturating_add(1)) };
                     let mut g = effectcraft_effects::instantiate(spec, &mut Ids(&mut next), &inst, *size);
-                    skipped.extend(apply_maps(&mut g, ej, at).into_iter().map(|path| format!("{}/{path}", spec.id)));
+                    let resolved = resolve_points(ej, spec, *size);
+                    skipped.extend(apply_maps(&mut g, &resolved, at).into_iter().map(|path| format!("{}/{path}", spec.id)));
                     added.push(g.uid);
                     fx.children.push(Node::Group(g));
                 }

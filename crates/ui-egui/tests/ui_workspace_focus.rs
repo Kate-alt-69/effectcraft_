@@ -11,6 +11,17 @@ use egui::{Event, Id, Key, Modifiers, vec2};
 use egui_kittest::Harness;
 use serde_json::json;
 
+// These checks exercise an inactive tab beside Project, independent of workspace defaults.
+fn tab_fixture(app: &mut EffectcraftApp) {
+    app.ui.dock.close(PanelKind::EffectControls);
+    if let DockNode::Split { a, .. } = &mut app.ui.dock
+        && let DockNode::Split { a, .. } = a.as_mut()
+        && let DockNode::Split { a, .. } = a.as_mut()
+    {
+        **a = DockNode::Tabs { panels: vec![PanelKind::Project, PanelKind::EffectControls], active: 0 };
+    }
+}
+
 #[test]
 fn named_and_current_workspaces_survive_frontend_restart() {
     let store = Arc::new(MemoryConfig::default());
@@ -118,6 +129,7 @@ fn tab_and_shift_tab_traverse_toolbar_and_space_activates_only_focused_tool() {
     session.execute("layer.newSolid", json!({"name": "Keep unchanged", "color": "#ff0000"})).unwrap();
     let project = session.project.clone();
     let mut app = EffectcraftApp::new(session);
+    tab_fixture(&mut app);
     app.ui.start_screen = false;
     app.ui.show_menu_bar = false;
     let mut h = Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(move |_| app);
@@ -159,6 +171,7 @@ fn tab_traversal_activates_an_inactive_dock_tab_without_editing_the_project() {
     session.execute("layer.newSolid", json!({"name": "Keep unchanged", "color": "#ff0000"})).unwrap();
     let project = session.project.clone();
     let mut app = EffectcraftApp::new(session);
+    tab_fixture(&mut app);
     app.ui.start_screen = false;
     app.ui.show_menu_bar = false;
     // Leave the inactive, layer-named tab visible instead of behind the overflow control.
@@ -217,6 +230,7 @@ impl ControlDriver {
     fn new() -> Self {
         let (tx, rx) = std::sync::mpsc::channel();
         let mut app = EffectcraftApp::new(Session::default()).with_control(rx);
+        tab_fixture(&mut app);
         app.ui.start_screen = false;
         app.ui.show_menu_bar = false;
         let mut driver = Self { h: Harness::builder().with_size(vec2(1200.0, 760.0)).build_eframe(move |_| app), tx };

@@ -15,6 +15,13 @@ use serde_json::json;
 const WHY: &str = "H.264 (High 4:2:2) isn't supported by the built-in decoder: chroma_format_idc 2 (only 4:2:0 is implemented)";
 
 /// A source that decodes nothing and, for `broken` movies, says why.
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 struct Stub(bool);
 
 impl FootageSource for Stub {
@@ -41,7 +48,7 @@ fn harness(broken: bool) -> (Harness<'static, EffectcraftApp>, ItemId) {
     let clip = std::sync::Arc::make_mut(&mut s.project).add_item("Clip", Default::default(), None, ItemKind::Footage(footage));
     s.execute("layer.addItem", json!({"item": clip.0})).unwrap();
     s.execute("project.select", json!({"items": []})).unwrap();
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(4);
     (h, clip)
 }

@@ -258,14 +258,16 @@ fn prop_row(
     let vx = match &value {
         Value::Vec2(_) | Value::Vec3(_) => {
             let point = if matches!(prop.ui, ParamUi::Point | ParamUi::Point3) { 22.0 } else { 0.0 };
+            let count = shown_dims(layer, prop, &value);
             let fields: f32 = value
                 .components()
                 .iter()
-                .take(shown_dims(layer, prop, &value))
-                .map(|v| p.layout_no_wrap(format!("{v:.1}"), Tokens::ui(12.0), t.hot_text).size().x + 12.0)
+                .take(count)
+                .map(|v| (p.layout_no_wrap(format!("{v:.1}"), Tokens::ui(12.0), t.hot_text).size().x + 12.0).max(32.0))
                 .sum();
+            let fields = fields + count.saturating_sub(1) as f32 * 8.0;
             let right = r.max.x - if prop.is_animated() { 52.0 } else { 8.0 };
-            vx.min(right - point - fields + 8.0).max(swr.max.x + 60.0)
+            vx.min(right - point - fields).max(swr.max.x + 60.0)
         }
         _ => vx,
     };

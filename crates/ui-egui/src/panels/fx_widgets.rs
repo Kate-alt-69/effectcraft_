@@ -58,8 +58,8 @@ fn degrees_edit(v: f64, shown: f64, new: f64, dragging: bool) -> f64 {
 pub fn angle_field(ui: &mut egui::Ui, at: Pos2, id: egui::Id, v: f64, decimals: usize, t: &Tokens) -> (Rect, Rect, Option<f64>) {
     let (rev, deg) = split_angle(v);
     let (rr, new_rev, _) = widgets::hot_int_at(ui, at, id.with("rev"), rev, 0.1, "x", t);
-    let sign = ui.painter().text(pos2(rr.max.x - 2.0, rr.center().y), Align2::LEFT_CENTER, if deg < 0.0 { "-" } else { "+" }, Tokens::ui(12.0), t.hot_text);
-    let (dr, new_deg, _) = widgets::hot_number_at(ui, pos2(sign.max.x - 2.0, at.y), id, deg.abs(), 0.5, (-1e9, 1e9), decimals, "°", t);
+    let sign = ui.painter().text(pos2(rr.max.x + 2.0, rr.center().y), Align2::LEFT_CENTER, if deg < 0.0 { "-" } else { "+" }, Tokens::ui(12.0), t.hot_text);
+    let (dr, new_deg, _) = widgets::hot_number_at(ui, pos2(sign.max.x + 2.0, at.y), id, deg.abs(), 0.5, (-1e9, 1e9), decimals, "°", t);
     let dragging = new_deg.is_some() && ui.ctx().is_being_dragged(id);
     let out = match (new_rev, new_deg) {
         (Some(r), _) => Some(r as f64 * 360.0 + deg),

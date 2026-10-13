@@ -21,6 +21,7 @@ mod color2;
 mod color3;
 mod color_fx;
 pub mod controls;
+mod creative;
 mod distort;
 mod distort2;
 mod distort3;
@@ -486,6 +487,7 @@ pub fn registry() -> &'static [EffectSpec] {
     R.get_or_init(|| {
         let mut v = Vec::new();
         v.extend(misc::specs());
+        v.extend(creative::specs());
         v.extend(color_fx::specs());
         v.extend(generate::specs());
         v.extend(distort::specs());

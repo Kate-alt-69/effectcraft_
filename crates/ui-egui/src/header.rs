@@ -272,7 +272,7 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
     rx = more.min.x - 6.0;
     // After Effects 2026's workspace bar order (right to left here): Default, Review, Learn,
     // Small Screen, Standard.
-    let shown = ["Standard", "Small Screen", "Learn", "Review", "Default"];
+    let shown = ["Standard", "Small Screen", "Learn", "Default", "Editing"];
     for name in shown {
         let g = p.layout_no_wrap(name.to_string(), Tokens::ui(12.0), t.text);
         let w = g.size().x + 16.0;
@@ -289,10 +289,18 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
         } else {
             t.text_dim
         };
+        p.rect_filled(
+            r.shrink2(vec2(1.0, 2.0)),
+            4.0,
+            if active {
+                t.row_selected
+            } else if resp.hovered() {
+                t.hover
+            } else {
+                t.field_bg
+            },
+        );
         p.galley_with_override_text_color(pos2(r.min.x + 8.0, cy - g.size().y / 2.0), g, col);
-        if active {
-            p.line_segment([pos2(r.min.x + 8.0, r.max.y - 3.0), pos2(r.max.x - 8.0, r.max.y - 3.0)], Stroke::new(2.0, t.hot_text));
-        }
         app.auto.add(&format!("header.workspace.{name}"), r, name);
         if resp.clicked() {
             app.set_workspace(name);
@@ -654,20 +662,20 @@ fn ws_menu(app: &mut EffectcraftApp, ui: &mut egui::Ui) {
     }
 }
 
-/// The ArtCraft mark as supplied in `docs/brand` (the README's and getartcraft.com's logo; used
-/// unmodified, see `docs/brand/LICENSE-brand.txt`).
-static ARTCRAFT_MARK: &[u8] = include_bytes!("../../../docs/brand/artcraft-mark.png");
+/// The openly licensed EffectCraft icon, reused by the fork instead of the restricted
+/// ArtCraft trademark. Attribution is attached to the existing asset.
+static EFFECTCRAFT_MARK: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/64x64/apps/ai.storyteller.effectcraft.png");
 
-/// The ArtCraft mark in `r` (decoded once into a mipmapped texture, so it stays crisp from the
+/// The EffectCraft icon in `r` (decoded once into a mipmapped texture, so it stays crisp from the
 /// 24 px Tools bar to the About dialog). Nothing is drawn if it can't be decoded.
 pub fn paint_logo(p: &egui::Painter, r: Rect) {
     let ctx = p.ctx();
-    let id = egui::Id::new("artcraft-mark");
+    let id = egui::Id::new("effectcraft-mark");
     let tex = ctx.data(|d| d.get_temp::<Option<egui::TextureHandle>>(id)).unwrap_or_else(|| {
-        let tex = image::load_from_memory_with_format(ARTCRAFT_MARK, image::ImageFormat::Png).ok().map(|img| {
+        let tex = image::load_from_memory_with_format(EFFECTCRAFT_MARK, image::ImageFormat::Png).ok().map(|img| {
             let img = img.to_rgba8();
             let ci = egui::ColorImage::from_rgba_unmultiplied([img.width() as usize, img.height() as usize], img.as_raw());
-            ctx.load_texture("artcraft-mark", ci, egui::TextureOptions::LINEAR.with_mipmap_mode(Some(egui::TextureFilter::Linear)))
+            ctx.load_texture("effectcraft-mark", ci, egui::TextureOptions::LINEAR.with_mipmap_mode(Some(egui::TextureFilter::Linear)))
         });
         ctx.data_mut(|d| d.insert_temp(id, tex.clone()));
         tex

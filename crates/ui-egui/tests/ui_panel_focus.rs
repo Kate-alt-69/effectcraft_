@@ -11,6 +11,13 @@ use egui_kittest::Harness;
 use serde_json::json;
 
 /// Comp "Main" (open) holding a solid, and comp "Other" (not open).
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn harness() -> (Harness<'static, EffectcraftApp>, u64, u64) {
     let mut s = Session::default();
     let other = s.execute("comp.new", json!({"name": "Other", "width": 320, "height": 180, "duration": 4})).unwrap()["comp"].as_u64().unwrap();
@@ -18,7 +25,7 @@ fn harness() -> (Harness<'static, EffectcraftApp>, u64, u64) {
     s.execute("layer.newSolid", json!({"name": "Red", "color": [1.0, 0.0, 0.0, 1.0]})).unwrap();
     s.state.open_comps = vec![ItemId(main)];
     s.state.active_comp = Some(ItemId(main));
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     (h, other, main)
 }

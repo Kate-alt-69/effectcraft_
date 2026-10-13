@@ -128,7 +128,7 @@ fn presets_apply_render_and_round_trip() {
     let (mut s, t) = session();
     let list = s.execute("text.presets", json!({})).unwrap();
     let ids: Vec<String> = list.as_array().unwrap().iter().map(|p| p["id"].as_str().unwrap().to_string()).collect();
-    assert!(ids.len() >= 5 && ids.len() <= 8, "{ids:?}");
+    assert_eq!(ids.len(), 20, "{ids:?}");
     let cid = s.active_comp_id().unwrap();
     for id in &ids {
         let before = s.active_comp().unwrap().layers[0].props.group("text/animators").unwrap().children.len();

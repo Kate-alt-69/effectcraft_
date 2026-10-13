@@ -383,11 +383,47 @@ fn hextile(e: &mut Enc, ctx: &EffectCtx, b: GBuf) -> Option<GBuf> {
     let r = (ctx.params.f("radius") * b.scale).max(0.5);
     let c = b.to_px(ctx.params.v2("center"));
     let (sn, cs) = ctx.params.f("rotate").to_radians().sin_cos();
-    let mut p = Params::default();
-    p.u[0][0] = ctx.params.e("render");
-    p.f[0] = [c.0 as f32, c.1 as f32, r as f32, (ctx.params.f("smearing") / 100.0).clamp(0.0, 1.0) as f32];
-    p.f[1] = [sn as f32, cs as f32, 0.0, 0.0];
-    run(e, "fp2_hextile", &p, b, None, None)
+    let smear = (ctx.params.f("smearing") / 100.0).clamp(0.0, 1.0);
+    let mode = ctx.params.e("render");
+    // Cube-rounding ties are discontinuities: f32 arithmetic can choose a different
+    // cell from stylize3::hex_cell. Prepare the geometry in the CPU's f64 arithmetic;
+    // sampling stays on the GPU. Decline oversized maps through the existing fallback.
+    let count = (b.img.width as usize).checked_mul(b.img.height as usize)?.checked_mul(2)?;
+    let bytes = count.checked_mul(std::mem::size_of::<f32>())?;
+    if bytes > e.g.device.limits().max_storage_buffer_binding_size as usize {
+        return None;
+    }
+    let mut coordinates = Vec::new();
+    coordinates.try_reserve_exact(count).ok()?;
+    for y in 0..b.img.height {
+        for x in 0..b.img.width {
+            let (dx, dy) = (x as f64 + 0.5 - c.0, y as f64 + 0.5 - c.1);
+            let (u, v) = (dx * cs + dy * sn, -dx * sn + dy * cs);
+            let q = (3f64.sqrt() / 3.0 * u - v / 3.0) / r;
+            let rr = (2.0 / 3.0 * v) / r;
+            let cy = -q - rr;
+            let (mut rx, ry, mut rz) = (q.round(), cy.round(), rr.round());
+            let (ddx, ddy, ddz) = ((rx - q).abs(), (ry - cy).abs(), (rz - rr).abs());
+            if ddx > ddy && ddx > ddz {
+                rx = -ry - rz;
+            } else if ddy <= ddz {
+                rz = -rx - ry;
+            }
+            let (hx, hy) = (r * 3f64.sqrt() * (rx + rz / 2.0), r * 1.5 * rz);
+            let (mut lu, mut lv) = (u - hx, v - hy);
+            let odd = (rx as i64).saturating_add(rz as i64).rem_euclid(2) == 1;
+            if (mode == 1 || mode == 2) && odd {
+                lu = -lu;
+            }
+            if mode == 2 && odd {
+                lv = -lv;
+            }
+            let (tx, ty) = (c.0 + (lu * cs - lv * sn), c.1 + (lu * sn + lv * cs));
+            coordinates.extend([(tx + (x as f64 + 0.5 - tx) * smear) as f32, (ty + (y as f64 + 0.5 - ty) * smear) as f32]);
+        }
+    }
+    let data = e.data(&coordinates);
+    run(e, "fp2_hextile", &Params::default(), b, None, Some(&data))
 }
 
 fn smoothie(e: &mut Enc, ctx: &EffectCtx, b: GBuf) -> Option<GBuf> {

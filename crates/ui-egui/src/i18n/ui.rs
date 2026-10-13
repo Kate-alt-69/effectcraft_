@@ -85,6 +85,11 @@ pub(crate) fn tr_args(text: &str, args: &[&dyn Display]) -> String {
 
 /// Japanese: the same rows, in the same order, as the Chinese catalogs below (the tests keep the two in step).
 const JAPANESE: &[(&str, &str)] = &[
+    ("Edit", "編集"),
+    ("+ Add effect or preset", "+ エフェクトまたはプリセットを追加"),
+    ("Loop", "ループ"),
+    ("Loop preview playback", "プレビュー再生をループ"),
+    ("Drag to adjust · Click to type · Shift: coarse · Ctrl/Cmd: fine", "ドラッグで調整 · クリックで入力 · Shift: 大きく調整 · Ctrl/Cmd: 微調整"),
     ("Appearance Settings…", "外観設定…"),
     ("Add to favorites", "お気に入りに追加"),
     ("Remove from favorites", "お気に入りから削除"),
@@ -95,8 +100,8 @@ const JAPANESE: &[(&str, &str)] = &[
     ("360 View Orientation", "360度ビューの方向"),
     ("3:2 Pulldown: {}", "3:2プルダウン：{}"),
     (
-        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. Part of the ArtCraft family of creative apps.",
-        "モーショングラフィックスとビジュアルエフェクト向けの、クリーンルーム方式で開発されたオープンソースのコンポジットソフトウェアです。macOS、Windows、Linuxでネイティブに動作し、ブラウザーでも使えます。ArtCraftクリエイティブアプリファミリーの一員です。",
+        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. This community fork is based on EffectCraft by the ArtCraft team.",
+        "モーショングラフィックスとビジュアルエフェクト向けの、クリーンルーム方式で開発されたオープンソースのコンポジットソフトウェアです。macOS、Windows、Linuxでネイティブに動作し、ブラウザーでも使えます。このコミュニティフォークはArtCraftチームのEffectCraftを基にしています。",
     ),
     ("About EffectCraft", "EffectCraftについて"),
     ("About...", "情報..."),
@@ -528,6 +533,11 @@ const JAPANESE: &[(&str, &str)] = &[
 ];
 
 const SIMPLIFIED_CHINESE: &[(&str, &str)] = &[
+    ("Edit", "编辑"),
+    ("+ Add effect or preset", "+ 添加效果或预设"),
+    ("Loop", "循环"),
+    ("Loop preview playback", "循环播放预览"),
+    ("Drag to adjust · Click to type · Shift: coarse · Ctrl/Cmd: fine", "拖动调整 · 点击输入 · Shift：粗调 · Ctrl/Cmd：微调"),
     ("Appearance Settings…", "外观设置…"),
     ("Add to favorites", "添加到收藏"),
     ("Remove from favorites", "从收藏中移除"),
@@ -538,8 +548,8 @@ const SIMPLIFIED_CHINESE: &[(&str, &str)] = &[
     ("360 View Orientation", "360 视图方向"),
     ("3:2 Pulldown: {}", "3:2 折叠：{}"),
     (
-        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. Part of the ArtCraft family of creative apps.",
-        "一款从零编写、开源的动态图形与视觉效果合成软件：原生支持 macOS、Windows 和 Linux，也可在浏览器中运行。属于 ArtCraft 创意应用家族。",
+        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. This community fork is based on EffectCraft by the ArtCraft team.",
+        "一款从零编写、开源的动态图形与视觉效果合成软件：原生支持 macOS、Windows 和 Linux，也可在浏览器中运行。本社区分支基于 ArtCraft 团队的 EffectCraft。",
     ),
     ("About EffectCraft", "关于 EffectCraft"),
     ("About...", "关于..."),
@@ -1063,6 +1073,11 @@ const SIMPLIFIED_CHINESE: &[(&str, &str)] = &[
 ];
 
 const TRADITIONAL_CHINESE: &[(&str, &str)] = &[
+    ("Edit", "編輯"),
+    ("+ Add effect or preset", "+ 新增效果或預設"),
+    ("Loop", "循環"),
+    ("Loop preview playback", "循環播放預覽"),
+    ("Drag to adjust · Click to type · Shift: coarse · Ctrl/Cmd: fine", "拖曳調整 · 點擊輸入 · Shift：粗調 · Ctrl/Cmd：微調"),
     ("Appearance Settings…", "外觀設定…"),
     ("Add to favorites", "加入最愛"),
     ("Remove from favorites", "從最愛移除"),
@@ -1073,8 +1088,8 @@ const TRADITIONAL_CHINESE: &[(&str, &str)] = &[
     ("360 View Orientation", "360 檢視方向"),
     ("3:2 Pulldown: {}", "3:2 摺疊：{}"),
     (
-        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. Part of the ArtCraft family of creative apps.",
-        "一款從零編寫、開源的動態圖形與視覺效果合成軟件：原生支援 macOS、Windows 和 Linux，也可在瀏覽器中執行。屬於 ArtCraft 創意應用家族。",
+        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. This community fork is based on EffectCraft by the ArtCraft team.",
+        "一款從零編寫、開源的動態圖形與視覺效果合成軟件：原生支援 macOS、Windows 和 Linux，也可在瀏覽器中執行。本社群分支基於 ArtCraft 團隊的 EffectCraft。",
     ),
     ("About EffectCraft", "關於 EffectCraft"),
     ("About...", "關於..."),
@@ -1595,6 +1610,11 @@ const TRADITIONAL_CHINESE: &[(&str, &str)] = &[
 /// Ukrainian (uk): original translations of the same interface rows as the Chinese catalogs.
 /// Technical names, key names and substituted project content keep their original spelling.
 const UKRAINIAN: &[(&str, &str)] = &[
+    ("Edit", "Редагувати"),
+    ("+ Add effect or preset", "+ Додати ефект або пресет"),
+    ("Loop", "Повтор"),
+    ("Loop preview playback", "Повторювати відтворення перегляду"),
+    ("Drag to adjust · Click to type · Shift: coarse · Ctrl/Cmd: fine", "Перетягніть для зміни · Клацніть для введення · Shift: грубо · Ctrl/Cmd: точно"),
     ("Appearance Settings…", "Налаштування вигляду…"),
     ("Add to favorites", "Додати до вибраного"),
     ("Remove from favorites", "Видалити з вибраного"),
@@ -1605,8 +1625,8 @@ const UKRAINIAN: &[(&str, &str)] = &[
     ("360 View Orientation", "Орієнтація огляду 360°"),
     ("3:2 Pulldown: {}", "Перетворення кадрів 3:2: {}"),
     (
-        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. Part of the ArtCraft family of creative apps.",
-        "Незалежно розроблена програма з відкритим кодом для компонування анімованої графіки та візуальних ефектів: працює на macOS, Windows і Linux, а також у браузері. Належить до родини творчих програм ArtCraft.",
+        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. This community fork is based on EffectCraft by the ArtCraft team.",
+        "Незалежно розроблена програма з відкритим кодом для компонування анімованої графіки та візуальних ефектів: працює на macOS, Windows і Linux, а також у браузері. Ця спільнотна версія ґрунтується на EffectCraft команди ArtCraft.",
     ),
     ("About EffectCraft", "Про EffectCraft"),
     ("About...", "Про програму..."),
@@ -2150,6 +2170,14 @@ const UKRAINIAN: &[(&str, &str)] = &[
 
 // Brazilian Portuguese.
 const PORTUGUESE: &[(&str, &str)] = &[
+    ("Edit", "Editar"),
+    ("+ Add effect or preset", "+ Adicionar efeito ou predefinição"),
+    ("Loop", "Repetir"),
+    ("Loop preview playback", "Repetir reprodução da prévia"),
+    (
+        "Drag to adjust · Click to type · Shift: coarse · Ctrl/Cmd: fine",
+        "Arraste para ajustar · Clique para digitar · Shift: passos maiores · Ctrl/Cmd: ajuste fino",
+    ),
     ("   OK   ", "   OK   "),
     ("  Delete  ", "  Excluir  "),
     (" Open Auto-Save ", " Abrir salvamento automático "),
@@ -2157,8 +2185,8 @@ const PORTUGUESE: &[(&str, &str)] = &[
     ("360 View Orientation", "Orientação da vista 360°"),
     ("3:2 Pulldown: {}", "Pulldown 3:2: {}"),
     (
-        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. Part of the ArtCraft family of creative apps.",
-        "Um compositor de código aberto, desenvolvido em clean-room, para motion graphics e efeitos visuais: nativo no macOS, Windows e Linux, e no navegador. Parte da família de aplicativos criativos ArtCraft.",
+        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. This community fork is based on EffectCraft by the ArtCraft team.",
+        "Um compositor de código aberto, desenvolvido em clean-room, para motion graphics e efeitos visuais: nativo no macOS, Windows e Linux, e no navegador. Este fork da comunidade é baseado no EffectCraft da equipe ArtCraft.",
     ),
     ("About EffectCraft", "Sobre o EffectCraft"),
     ("About...", "Sobre..."),
@@ -2584,6 +2612,11 @@ const PORTUGUESE: &[(&str, &str)] = &[
 
 /// Czech (cs): original translations covering every row in the Chinese panel catalogs.
 const CZECH: &[(&str, &str)] = &[
+    ("Edit", "Upravit"),
+    ("+ Add effect or preset", "+ Přidat efekt nebo předvolbu"),
+    ("Loop", "Opakovat"),
+    ("Loop preview playback", "Opakovat přehrávání náhledu"),
+    ("Drag to adjust · Click to type · Shift: coarse · Ctrl/Cmd: fine", "Tažením upravte · Kliknutím zadejte · Shift: hrubě · Ctrl/Cmd: jemně"),
     ("   OK   ", "   OK   "),
     ("  Delete  ", "  Odstranit  "),
     (" Open Auto-Save ", " Otevřít automatickou zálohu "),
@@ -2591,8 +2624,8 @@ const CZECH: &[(&str, &str)] = &[
     ("360 View Orientation", "Orientace zobrazení 360°"),
     ("3:2 Pulldown: {}", "Převod 3:2 pulldown: {}"),
     (
-        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. Part of the ArtCraft family of creative apps.",
-        "Kompoziční nástroj s otevřeným zdrojovým kódem pro pohyblivou grafiku a vizuální efekty, vyvinutý nezávisle metodou clean-room. Běží nativně na macOS, Windows a Linuxu i v prohlížeči. Patří do rodiny kreativních aplikací ArtCraft.",
+        "A clean-room, open-source compositor for motion graphics and visual effects: native on macOS, Windows and Linux, and in the browser. This community fork is based on EffectCraft by the ArtCraft team.",
+        "Kompoziční nástroj s otevřeným zdrojovým kódem pro pohyblivou grafiku a vizuální efekty, vyvinutý nezávisle metodou clean-room. Běží nativně na macOS, Windows a Linuxu i v prohlížeči. Tato komunitní odvozená verze vychází z EffectCraft od týmu ArtCraft.",
     ),
     ("About EffectCraft", "O aplikaci EffectCraft"),
     ("About...", "O aplikaci…"),

@@ -11,6 +11,13 @@ use egui::{Event, pos2};
 use egui_kittest::Harness;
 use serde_json::{Value, json};
 
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn invoke(h: &mut Harness<'_, EffectcraftApp>, id: &str, p: Value) {
     let ctx = h.ctx.clone();
     effectcraft_ui_egui::menus::invoke(h.state_mut(), &ctx, id, p).unwrap();
@@ -63,7 +70,7 @@ fn new_viewers_lock_route_comps_and_activate_on_click() {
     let c = new_comp(&mut s, "C");
     let b = new_comp(&mut s, "B");
     let a = new_comp(&mut s, "A");
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     // View ▸ New Viewer: viewer 1 shows A too, viewer 0 (the Composition panel) is locked.
     invoke(&mut h, "view.newViewer", json!({}));
@@ -119,7 +126,7 @@ fn a_locked_viewer_keeps_its_comp_when_the_project_panel_opens_another() {
     let mut s = Session::default();
     let b = new_comp(&mut s, "B");
     let a = new_comp(&mut s, "A");
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     // Viewer 0 locked to A, and B in viewer 1 (a tab next to it).
     invoke(&mut h, "view.newViewer", json!({}));
@@ -142,7 +149,7 @@ fn viewers_snapshot() {
     let mut s = Session::default();
     s.execute("file.openDemoProject", json!({})).unwrap();
     let other = s.project.items.values().filter(|i| i.as_comp().is_some()).map(|i| i.id).find(|id| Some(*id) != s.active_comp_id()).unwrap();
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     h.run_steps(3);
     invoke(&mut h, "view.newViewer", json!({}));
     assert!(h.state_mut().edit_layout(|l| l.dock(PanelKind::Viewer(1), PanelKind::Composition, Zone::Right)));

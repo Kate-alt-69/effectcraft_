@@ -9,6 +9,13 @@ use egui::{Event, Key, Modifiers, pos2};
 use egui_kittest::Harness;
 use serde_json::json;
 
+// Project interactions explicitly open the Assets tab in the fork layout.
+fn project_app(session: Session) -> EffectcraftApp {
+    let mut app = EffectcraftApp::new(session);
+    app.show_panel(effectcraft_ui_egui::dock::PanelKind::Project);
+    app
+}
+
 fn harness() -> (Harness<'static, EffectcraftApp>, Vec<ItemId>, LayerId) {
     let mut s = Session::default();
     s.execute("comp.new", json!({"name": "Delete me", "width": 320, "height": 180, "duration": 4})).unwrap();
@@ -24,7 +31,7 @@ fn harness() -> (Harness<'static, EffectcraftApp>, Vec<ItemId>, LayerId) {
     );
     let folder = ItemId(s.execute("project.newFolder", json!({"name": "Folder"})).unwrap()["item"].as_u64().unwrap());
     let keep = LayerId(s.execute("layer.newNull", json!({"name": "Keep this layer"})).unwrap()["layer"].as_u64().unwrap());
-    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| EffectcraftApp::new(s));
+    let mut h = Harness::builder().with_size(egui::vec2(1600.0, 1000.0)).build_eframe(|_| project_app(s));
     let folders: Vec<u64> = h.state().session.project.items.values().filter(|i| i.is_folder()).map(|i| i.id.0).collect();
     h.state_mut().ui.project_open_folders.extend(folders);
     h.run_steps(3);

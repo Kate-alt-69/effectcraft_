@@ -12,9 +12,17 @@ use crate::{Result, Session, cmd, query};
 
 /// The original text animator presets (`presets/text_animators.json`).
 pub const PRESETS_JSON: &str = include_str!("../../presets/text_animators.json");
+/// Fork reveals are isolated from the upstream library for easier merges.
+pub const CREATIVE_TEXT_JSON: &str = include_str!("../../presets/text_creative.json");
 
-fn presets() -> Vec<Value> {
-    serde_json::from_str::<Value>(PRESETS_JSON).ok().and_then(|v| v.get("presets").and_then(Value::as_array).cloned()).unwrap_or_default()
+fn presets() -> &'static [Value] {
+    static LIBRARY: std::sync::OnceLock<Vec<Value>> = std::sync::OnceLock::new();
+    LIBRARY.get_or_init(|| {
+        [PRESETS_JSON, CREATIVE_TEXT_JSON]
+            .into_iter()
+            .flat_map(|source| serde_json::from_str::<Value>(source).ok().and_then(|v| v.get("presets").and_then(Value::as_array).cloned()).unwrap_or_default())
+            .collect()
+    })
 }
 
 /// (id, name) of every preset.
@@ -303,7 +311,7 @@ fn apply_preset(s: &mut Session, p: &Value) -> Result<Value> {
     let (cid, lid) = layer_p(s, p, C)?;
     let want = str_p(p, "preset").ok_or_else(|| bad(C, "`preset` id or name required"))?.to_string();
     let preset = presets()
-        .into_iter()
+        .iter()
         .find(|x| x.get("id").and_then(Value::as_str) == Some(&want) || x.get("name").and_then(Value::as_str).is_some_and(|n| n.eq_ignore_ascii_case(&want)))
         .ok_or_else(|| bad(C, format!("no preset {want}")))?;
     let name = preset.get("name").and_then(Value::as_str).unwrap_or("Preset").to_string();

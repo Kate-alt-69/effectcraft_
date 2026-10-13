@@ -592,6 +592,10 @@ pub(crate) fn bottom_bar(app: &mut EffectcraftApp, ui: &mut egui::Ui, bar: Rect,
     p.rect_filled(bar, 0.0, t.panel_bg);
     p.line_segment([bar.left_top(), bar.right_top()], Stroke::new(1.0, t.separator));
     app.auto.add("viewer.controls", bar, "Viewer controls");
+    let transport = Rect::from_min_size(bar.min, vec2(bar.width(), 36.0));
+    super::misc::transport(app, ui, transport, "viewer.transport");
+    let bar = Rect::from_min_max(pos2(bar.min.x, transport.max.y), bar.max);
+    p.line_segment([bar.left_top(), bar.right_top()], Stroke::new(1.0, t.separator));
     ui.scope_builder(egui::UiBuilder::new().max_rect(bar), |ui| {
         let scroll = &mut ui.style_mut().spacing.scroll;
         scroll.floating = false;

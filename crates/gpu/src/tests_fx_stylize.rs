@@ -21,6 +21,30 @@ fn pt(x: f64, y: f64) -> Value {
 }
 
 #[test]
+fn threshold_rgb_keeps_ieee_decisions_on_quantized_alpha() {
+    let Some(g) = crate::tests::gpu() else { return };
+    let spec = effectcraft_effects::find("ec.stylize.ccthresholdrgb").unwrap();
+    let size = [256.0, 256.0];
+    let mut params =
+        effectcraft_effects::Params { values: spec.params.iter().map(|p| (p.id.to_string(), effectcraft_effects::default_value(p, size))).collect() };
+    params.values.insert("greenThreshold".into(), n(150.0));
+    params.values.insert("invertGreen".into(), on());
+    let mut img = effectcraft_raster::Image::new(256, 256);
+    let inv = 1.0_f32 / 255.0;
+    for alpha in 0..256usize {
+        for color in 0..256usize {
+            let c = color.min(alpha) as f32 * inv;
+            img.data[alpha * 256 + color] = [c, c, c, alpha as f32 * inv];
+        }
+    }
+    let buf = effectcraft_effects::Buf { img, offset: [0.0; 2], scale: 1.0 };
+    let ctx = effectcraft_effects::EffectCtx { params: &params, time: 0.0, layer_size: size, seed: 0, adjustment: false, env: Default::default() };
+    let cpu = (spec.render)(&ctx, buf.clone());
+    let gpu = effectcraft_render::Accelerator::effects(g, &[effectcraft_render::FxStep { spec, ctx }], &buf, None).unwrap();
+    assert_eq!(gpu.img.data, cpu.img.data, "all 8-bit color/alpha ratios must make the same threshold decision");
+}
+
+#[test]
 fn posterize_thresholds_strobe_vignette() {
     effect_case("ec.stylize.posterize", &[("level", n(4.0))]);
     effect_case("ec.stylize.posterize", &[("level", n(9.0))]);
