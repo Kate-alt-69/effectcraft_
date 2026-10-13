@@ -178,8 +178,9 @@ See [docs/agents.md](docs/agents.md) and [docs/control-protocol.md](docs/control
 
 ## Get started
 
-Installers for each version are on the [Releases](https://github.com/storytold/effectcraft/releases)
-page: a universal macOS app; Windows MSIs and portable zips for x64, x86 and ARM64; Linux
+Build this fork locally using the instructions below; it does not yet publish installers.
+The [original upstream releases](https://github.com/storytold/effectcraft/releases) contain the original app,
+without this fork's changes: a universal macOS app; Windows MSIs and portable zips for x64, x86 and ARM64; Linux
 AppImage, Flatpak, deb, rpm and tar.gz for x86_64 and aarch64, plus a riscv64 tar.gz; a FreeBSD x86_64 tarball; and the
 web build. [Downloads](#downloads) lists every file. The Windows ARM64 build runs natively on
 Windows on ARM, without x64 emulation. CI installs that MSI on Windows 11 ARM64 hardware, checks
@@ -196,12 +197,35 @@ echo 'media-video/effectcraft-bin ~amd64' >> /etc/portage/package.accept_keyword
 emerge --ask media-video/effectcraft-bin
 ```
 
-To build it yourself you need [Rust](https://rustup.rs/) 1.95 or newer.
+To build this fork you need Git and [Rust](https://rustup.rs/) 1.95 or newer.
+On Windows, install Visual Studio Build Tools with **Desktop development with C++** and a
+Windows SDK. If Rust is already installed, use that installation; no reinstall is needed.
+
+In **PowerShell 7**, clone into a folder named `EffectCraft`, build, and launch:
+
+```powershell
+git clone --branch fork/workspace-effects https://github.com/Kate-alt-69/effectcraft_.git EffectCraft
+Set-Location EffectCraft
+pwsh -File .\build.ps1 -Run
+```
+
+`build.ps1` checks the active Rust version and runs Cargo with `--release --locked`.
+It never installs or updates Rust. Omit `-Run` to build only, or use `-Demo` to open the demo.
+For MSI/portable ZIP packaging, see [packaging/windows/package.ps1](packaging/windows/package.ps1);
+that script also needs WiX and the .NET SDK.
+
+**Why Cargo still contacts ArtCraft:** `Cargo.toml` pins FilmCraft codec/media libraries and
+`craft-ui` from `storytold/filmcraft` and `storytold/craft-libs` to specific commits.
+These are shared dependencies, not a checkout of the original EffectCraft app. EffectCraft's
+workspace crates build from this fork's local source. `--locked` preserves the committed
+lockfile; it does not prevent dependency downloads. See [the fork workflow](docs/fork-workflow.md).
+
+The equivalent commands on other platforms are:
 
 ```sh
-git clone https://github.com/storytold/effectcraft
-cd effectcraft
-cargo run --release -p effectcraft          # the app (add `-- --demo` to open the demo project)
+git clone --branch fork/workspace-effects https://github.com/Kate-alt-69/effectcraft_.git EffectCraft
+cd EffectCraft
+cargo run --release --locked -p effectcraft          # the app (add `-- --demo` to open the demo project)
 cargo run --release -p effectcraft-cli -- render --out intro.mp4    # render the demo headless
 cargo xtask web --serve 8765                # the browser build on http://127.0.0.1:8765/ (docs/web.md)
 ```
@@ -234,7 +258,7 @@ EffectCraft is in **alpha**: about 91% of After Effects' features exist, and we 
 about 45% of the way to replacing After Effects for professional work. The [ROADMAP](ROADMAP.md)
 has the plan, [docs/target-app-parity.md](docs/target-app-parity.md) the measurement and
 [docs/gaps.md](docs/gaps.md) every known shortfall. The web build ([docs/web.md](docs/web.md)) runs the full app in the browser.
-[Bug reports](https://github.com/storytold/effectcraft/issues) are the most useful thing you can
+[Bug reports](https://github.com/Kate-alt-69/effectcraft_/issues) are the most useful thing you can
 send us right now.
 
 ## How it's made
@@ -250,9 +274,10 @@ send us right now.
 
 ## Downloads
 
-**New to EffectCraft?** Download it from the [EffectCraft page on getartcraft.com](https://getartcraft.com/apps/effectcraft). That's the easiest way to install it.
+**Building this fork?** Follow [Get started](#get-started). The downloads below and the
+[EffectCraft page on getartcraft.com](https://getartcraft.com/apps/effectcraft) provide the original upstream app.
 
-**Want a specific build or format?** On GitHub, the [latest release](https://github.com/storytold/effectcraft/releases/latest) has every build listed below, and [all releases](https://github.com/storytold/effectcraft/releases) has earlier versions and their notes. `<ver>` in the file names is the version number, and `SHA256SUMS.txt` lists a checksum for every file.
+**Original upstream downloads:** these installers do not contain the fork changes. On GitHub, the [latest release](https://github.com/storytold/effectcraft/releases/latest) has every build listed below, and [all releases](https://github.com/storytold/effectcraft/releases) has earlier versions and their notes. `<ver>` in the file names is the version number, and `SHA256SUMS.txt` lists a checksum for every file.
 
 ### Windows
 
@@ -324,7 +349,7 @@ stand on its own.
 | <img src="https://raw.githubusercontent.com/storytold/filmcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.filmcraft.png" alt="" width="32" height="32"> | **FilmCraft** | Video editing, color and sound | [GitHub](https://github.com/storytold/filmcraft) | [Website](https://getartcraft.com/apps/filmcraft) |
 | <img src="https://raw.githubusercontent.com/storytold/lightcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.lightcraft.png" alt="" width="32" height="32"> | **LightCraft** | Photo library and raw development | [GitHub](https://github.com/storytold/lightcraft) | [Website](https://getartcraft.com/apps/lightcraft) |
 | <img src="https://raw.githubusercontent.com/storytold/pdfcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.pdfcraft.png" alt="" width="32" height="32"> | **PdfCraft** | Reading, organizing and protecting PDFs | [GitHub](https://github.com/storytold/pdfcraft) | [Website](https://getartcraft.com/apps/pdfcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/effectcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.effectcraft.png" alt="" width="32" height="32"> | **EffectCraft** | **Motion graphics and visual effects · you are here** | [GitHub](https://github.com/storytold/effectcraft) | [Website](https://getartcraft.com/apps/effectcraft) |
+| <img src="https://raw.githubusercontent.com/Kate-alt-69/effectcraft_/fork/workspace-effects/assets/app-icon/hicolor/64x64/apps/ai.storyteller.effectcraft.png" alt="" width="32" height="32"> | **EffectCraft** | **Motion graphics and visual effects · you are here** | [GitHub](https://github.com/Kate-alt-69/effectcraft_) | [Website](https://getartcraft.com/apps/effectcraft) |
 | <img src="https://raw.githubusercontent.com/storytold/designcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.designcraft.png" alt="" width="32" height="32"> | **DesignCraft** | Page layout and publishing | [GitHub](https://github.com/storytold/designcraft) | [Website](https://getartcraft.com/apps/designcraft) |
 
 And [**ArtCraft**](https://getartcraft.com/) itself, our AI image and video studio for artists who want real control.
@@ -372,4 +397,4 @@ Forks and modified versions must remove them.
 
 ## Star history
 
-[![Star History Chart](https://api.star-history.com/svg?repos=storytold/effectcraft&type=Date&legend=top-left)](https://www.star-history.com/?repos=storytold%2Feffectcraft&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=Kate-alt-69/effectcraft_&type=Date&legend=top-left)](https://www.star-history.com/?repos=Kate-alt-69%2Feffectcraft_&type=date&legend=top-left)

@@ -1,4 +1,4 @@
-# Community fork workflow (F1)
+# Community fork workflow
 
 This fork is based on EffectCraft by the ArtCraft team. Its source and original additions remain
 MIT OR Apache-2.0. Restricted ArtCraft wordmarks and header marks have been removed; the header
@@ -85,3 +85,30 @@ bounded by the device storage-buffer limit; larger maps use the existing CPU fal
 Run `cargo xtask ci` before committing. UI changes also need visual inspection using the headless
 snapshot example. `Plan.md` records the remaining canvas tools, visual Library, reusable components,
 ArtCraft handoff, and caching work.
+
+
+## Windows builds and shared dependencies (F2)
+
+Clone `Kate-alt-69/effectcraft_` on the `fork/workspace-effects` branch. In PowerShell 7,
+run `pwsh -File .\build.ps1 -Run` from the clone. The helper builds the app from local source
+using your existing Rust 1.95+ toolchain and the committed Cargo lockfile. It does not install,
+update, or repair Rust. Use `-Demo` to launch the demo, or omit switches to build only.
+Windows also needs Visual Studio Build Tools' Desktop development with C++ and a Windows SDK.
+
+For an existing clone, fetch and switch to that branch, then run `git pull --ff-only` before
+rebuilding. Merging a PR into your fork's main branch is optional; this branch already contains
+the changes and can be built directly.
+
+Cargo's `Updating git repository` messages for `storytold/filmcraft` and `storytold/craft-libs`
+are expected. The former supplies shared codecs/media crates (pinned to
+`2c5ba7a72619935f0481f99d59409e0d1844b234`); the latter supplies `craft-ui` (pinned to
+`5c874d51eeb3de70e735c8ce87a59a7dedd47675`). Neither fetch replaces the local EffectCraft
+workspace with the original app. Changing those URLs to the EffectCraft fork would break
+resolution because this repository does not contain those dependency packages. Independent
+copies of those libraries would require separate forks or a deliberate vendoring change.
+The release workflow also uses upstream's shared `craft-common-actions` workflow.
+
+The app's GitHub/feedback links, Cargo repository metadata, packaging support links, and README
+clone instructions point to this fork. Historical upstream issue links and ArtCraft community
+and sibling-app links retain their original destinations. Upstream release downloads are
+explicitly labeled as original binaries; this fork currently needs a local build.

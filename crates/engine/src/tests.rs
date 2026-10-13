@@ -382,7 +382,8 @@ fn help_links_emit_urls() {
     let r = s.execute("help.discord", json!({})).unwrap();
     assert_eq!(r["url"], "https://discord.gg/artcraft");
     assert!(s.drain_events().iter().any(|e| matches!(e, crate::Event::OpenUrl(u) if u.contains("discord"))));
-    assert_eq!(s.execute("help.github", json!({})).unwrap()["url"], "https://github.com/storytold/effectcraft");
+    assert_eq!(s.execute("help.github", json!({})).unwrap()["url"], "https://github.com/Kate-alt-69/effectcraft_");
+    assert_eq!(s.execute("help.reportIssue", json!({})).unwrap()["url"], "https://github.com/Kate-alt-69/effectcraft_/issues");
 }
 
 #[test]

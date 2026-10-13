@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-12 (Asia/Kolkata)
 
-This file records the discussion, decisions, proposals, evidence, and next steps. Keep it updated as the design develops. Recommendations are proposals until accepted or implemented. Implementation of the first batch (F1) is underway; the original proposals remain recorded below.
+This file records the discussion, decisions, proposals, evidence, and next steps. Keep it updated as the design develops. Recommendations are proposals until accepted or implemented. Implementation of the first batch (F1) is complete; the original proposals remain recorded below.
 
 ## Goal and scope
 
@@ -231,3 +231,34 @@ Validation completed: `cargo xtask ci` passed on 2026-10-13: formatting, all-tar
 The initial full gate passed formatting and workspace Clippy, then the software Vulkan adapter retired during the existing Dust & Scratches test, causing later tests on that shared device to fail. An isolated reproduction passed with Mesa's `GALLIVM_PERF=nopt` faster shader-compilation setting. Final validation uses llvmpipe Vulkan with that setting, two renderer threads, a writable shader cache, and serial tests; no tests or application deadlines are disabled. Network access is enabled for localhost control-server tests and dependency retrieval. Local ALSA development/runtime packages supply the desktop build dependency in this managed environment. Release validation disables LTO and uses 16 codegen units to reuse builds and reduce resource cost; the repository's normal release profile remains unchanged.
 
 Remaining plan items are future batches: Mesh Warp/Liquify canvas editing, interactive 3D transform tools, motion behavior builder, visual Library previews, adaptive caching scheduler, GPU kernels for new effects, reusable components, responsive layout, and specified ArtCraft handoff. Shape preset motions use explicit scale/rotation values and replace keys; larger canvas limits are documented. Preset duration/intensity controls are edited through resulting keyframes rather than a new application dialog.
+
+
+## F2 build/source clarification — 2026-10-13
+
+The user's Windows log clones `Kate-alt-69/effectcraft_` on `fork/workspace-effects` and compiles
+EffectCraft crates from `D:\Project_Customs\Art_Craft\EffectCraft`. Downloads of FilmCraft and
+craft-libs are pinned shared dependencies, not the original EffectCraft app. Their URLs and the
+Cargo lockfile are retained; replacing them with this app fork would fail to resolve packages.
+
+- Correct fork repository metadata, Help/GitHub and feedback links, startup error reporting,
+  packaging support/signing links, and README clone instructions. Preserve upstream community,
+  sibling-app, historical issue references, and shared-library/CI dependency sources.
+- Label original upstream installers clearly; fork installer releases have not been published.
+- Add root `build.ps1` for PowerShell 7: verify the existing active Rust is 1.95+, build locked in
+  release mode, optionally launch the app/demo, and report native command errors. The script
+  never installs, updates, or repairs Rust. Explain native Windows C++/SDK prerequisites.
+- The earlier rustup install advice was unnecessary for an already compatible installation.
+  The pasted rustup error reports an existing `cargo-miri.exe` link collision; the log does not
+  establish Rust corruption and shows Cargo continuing compilation. User-side Rust repair is
+  deferred per the user's request.
+- Continue on `fork/workspace-effects`; a PR into the fork's main branch is optional.
+
+Validation: formatting and all-target workspace Clippy passed. PowerShell 7.4 parsed the new
+helper and updated signing script; six simulated-command checks on Linux passed (build, run,
+demo, old Rust rejection, rustc failure, Cargo failure). Linux shell syntax and both edited XML
+files parsed successfully. Native release tests were still running without reported failures
+when the user explicitly instructed: “if you're waiting on Test results forget em we will check
+later let me build this first!” The active gate was stopped per that instruction; full native,
+layering, asset, and WebAssembly validation for F2 is deferred. No complete CI pass or native
+Windows build is claimed for this batch. User instructions override the repository's usual
+complete-CI-before-commit rule for this immediate build handoff.
